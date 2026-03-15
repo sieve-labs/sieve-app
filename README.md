@@ -1,17 +1,30 @@
-# labi
+# lab-i
 
-A new Flutter project.
+Automated Laboratory Image Organization
 
-## Getting Started
+lab-i helps researchers automatically organize microscopy images, 
+cell cultures, tissue samples, and experimental specimens through 
+AI classification.
 
-This project is a starting point for a Flutter application.
+## Downloads
+See the [Releases](https://github.com/lab-intelligence/lab-i-app/releases) 
+page for the latest APK and desktop builds.
 
-A few resources to get you started if this is your first Flutter project:
+## How it works
+1. Add your API key (OpenRouter free tier recommended)
+2. Define a label set for your research domain
+3. Import your images
+4. Get organised, renamed, sorted results
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Providers supported
+- OpenRouter (free tier available)
+- Ollama (local, offline, private)
+- OpenAI
+- Anthropic
+- Google Gemini
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Support the project
+[Buy me a coffee](https://buymeacoffee.com/sameermann)
+
+## License
+MIT

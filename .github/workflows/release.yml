@@ -1,0 +1,113 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+      
+      - run: flutter pub get
+      - run: flutter build apk --release
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+      
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build clang pkg-config libgtk-3-dev
+      
+      - run: flutter pub get
+      - run: flutter build linux --release
+      
+      - run: |
+          cd build/linux/x64/release/bundle
+          zip -r ../../../../../lab-i-linux.zip .
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: lab-i-linux.zip
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+      
+      - run: flutter pub get
+      - run: flutter build windows --release
+      
+      - run: |
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath lab-i-windows.zip
+        shell: pwsh
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: lab-i-windows.zip
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+      
+      - run: flutter pub get
+      - run: flutter build macos --release
+      
+      - run: |
+          cd build/macos/Build/Products/Release
+          zip -r ../../../../../lab-i-macos.zip lab-i.app
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: lab-i-macos.zip
+
+  release:
+    needs: [build-android, build-linux, build-windows, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+      
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            android-apk/app-release.apk
+            linux-build/lab-i-linux.zip
+            windows-build/lab-i-windows.zip
+            macos-build/lab-i-macos.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
