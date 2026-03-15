@@ -28,13 +28,12 @@ class LabiApp extends ConsumerWidget {
 
 final _routerProvider = Provider<GoRouter>((ref) {
   final hasKeyAsync = ref.watch(hasApiKeyProvider);
-  final hasGalleryPathAsync = ref.watch(hasGalleryPathProvider);
+  final hasGalleryPath = ref.watch(hasGalleryPathProvider);
 
   return GoRouter(
     initialLocation: '/',
     redirect: (context, state) {
       final hasKey = hasKeyAsync.valueOrNull ?? false;
-      final hasGalleryPath = hasGalleryPathAsync.valueOrNull ?? false;
       
       final isSetupRoute = state.matchedLocation == '/setup';
       final isStorageSetupRoute = state.matchedLocation == '/storage-setup';

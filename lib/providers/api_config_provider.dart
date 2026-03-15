@@ -53,9 +53,50 @@ final hasApiKeyProvider = FutureProvider<bool>((ref) async {
   return config != null && config.isValid;
 });
 
+/// Manages the Gallery storage path state.
+class GalleryPathNotifier extends AsyncNotifier<String?> {
+  @override
+  FutureOr<String?> build() async {
+    final service = ref.read(secureStorageServiceProvider);
+    return service.getGalleryPath();
+  }
+
+  Future<void> savePath(String path) async {
+    state = const AsyncValue.loading();
+    try {
+      final service = ref.read(secureStorageServiceProvider);
+      await service.saveGalleryPath(path);
+      state = AsyncValue.data(path);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> clearPath() async {
+    state = const AsyncValue.loading();
+    try {
+      final service = ref.read(secureStorageServiceProvider);
+      // service.deleteGalleryPath() isn't implemented in service, 
+      // but we can save empty. 
+      await service.saveGalleryPath('');
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+}
+
+/// Provider for the Gallery path state.
+final galleryPathProvider =
+    AsyncNotifierProvider<GalleryPathNotifier, String?>(() {
+  return GalleryPathNotifier();
+});
+
 /// Convenience provider that checks if a gallery path is configured.
-final hasGalleryPathProvider = FutureProvider<bool>((ref) async {
-  final service = ref.watch(secureStorageServiceProvider);
-  final path = await service.getGalleryPath();
-  return path != null && path.isNotEmpty;
+final hasGalleryPathProvider = Provider<bool>((ref) {
+  final pathAsync = ref.watch(galleryPathProvider);
+  return pathAsync.maybeWhen(
+    data: (path) => path != null && path.isNotEmpty,
+    orElse: () => false,
+  );
 });

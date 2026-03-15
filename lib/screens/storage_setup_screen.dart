@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
@@ -73,7 +72,6 @@ class _StorageSetupScreenState extends ConsumerState<StorageSetupScreen>
   Future<void> _completeSetupWithDefaultFolder() async {
     setState(() => _isLoading = true);
     try {
-      final storageService = ref.read(secureStorageServiceProvider);
       Directory? directory;
       if (Platform.isAndroid) {
         directory = Directory('/storage/emulated/0/Download/Labi');
@@ -90,10 +88,9 @@ class _StorageSetupScreenState extends ConsumerState<StorageSetupScreen>
         }
       }
       
-      await storageService.saveGalleryPath(directory.path);
-      if (mounted) {
-        context.go('/');
-      }
+      await ref.read(galleryPathProvider.notifier).savePath(directory.path);
+      // context.go('/') is now handled by the router's reactivity, 
+      // but keeping it for safety or explicit feel is fine too.
     } catch (e) {
       debugPrint('Failed to complete setup: $e');
     } finally {
@@ -108,9 +105,7 @@ class _StorageSetupScreenState extends ConsumerState<StorageSetupScreen>
       );
 
       if (chosenPath != null) {
-        final storageService = ref.read(secureStorageServiceProvider);
-        await storageService.saveGalleryPath(chosenPath);
-        if (mounted) context.go('/');
+        await ref.read(galleryPathProvider.notifier).savePath(chosenPath);
       }
       return;
     }
