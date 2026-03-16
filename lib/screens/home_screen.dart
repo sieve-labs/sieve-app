@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'gallery_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -17,7 +18,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Lab-i'),
+        title: const Text('Sieve'),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -79,6 +80,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           subtitle: 'View and export classification results',
           onTap: () => context.push('/results'),
         ),
+        const SizedBox(height: 12),
+        _ExternalFeatureCard(
+          icon: Icons.menu_book,
+          title: 'Documentation',
+          subtitle: 'View the guide on GitBook',
+          url: 'https://sieve-labs.gitbook.io/sieve/',
+        ),
       ],
     );
   }
@@ -106,6 +114,40 @@ class _FeatureCard extends StatelessWidget {
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.chevron_right),
         onTap: onTap,
+      ),
+    );
+  }
+}
+
+class _ExternalFeatureCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String url;
+
+  const _ExternalFeatureCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.url,
+  });
+
+  Future<void> _launchUrl() async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        leading: Icon(icon, size: 36, color: Theme.of(context).colorScheme.primary),
+        title: Text(title),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.open_in_new),
+        onTap: _launchUrl,
       ),
     );
   }

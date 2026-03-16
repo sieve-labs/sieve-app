@@ -385,9 +385,19 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
           mainAxisSpacing: 16,
           childAspectRatio: 0.85,
         ),
+        itemCount: _sections.length,
         itemBuilder: (context, index) {
+          if (index >= _sections.length) {
+            return const SizedBox.shrink();
+          }
           final section = _sections[index];
+          if (section.files.isEmpty) {
+            return const SizedBox.shrink();
+          }
           final latestFile = section.files.last;
+          if (!latestFile.existsSync()) {
+            return const SizedBox.shrink();
+          }
           final isSelected = _selectedAlbumLabels.contains(section.label);
 
           return GestureDetector(
@@ -530,7 +540,13 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
         ),
         itemCount: section.files.length,
         itemBuilder: (context, index) {
+          if (index >= section.files.length) {
+            return const SizedBox.shrink();
+          }
           final file = section.files[index];
+          if (!file.existsSync()) {
+            return const SizedBox.shrink();
+          }
           final filename = p.basename(file.path);
           final meta = _metadata[filename];
           final isUncertain = meta?['isUncertain'] == true;
@@ -597,7 +613,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
                     right: 4,
                     child: Icon(Icons.warning, color: Colors.orange, size: 16),
                   ),
-                if (!_isSelectionMode && meta != null)
+                if (!_isSelectionMode && meta != null && meta['confidence'] != null)
                   Positioned(
                     top: 4,
                     left: 4,

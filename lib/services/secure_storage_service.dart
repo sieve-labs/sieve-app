@@ -96,4 +96,18 @@ class SecureStorageService {
   Future<String?> getThemeMode() async {
     return await _storage.read(key: AppConstants.themeModeStorageKey);
   }
+
+  /// Check whether welcome screen has been seen.
+  Future<bool> hasSeenWelcome() async {
+    final seen = await _storage.read(key: AppConstants.welcomeSeenKey);
+    return seen == 'true';
+  }
+
+  /// Set welcome screen seen status.
+  Future<void> setWelcomeSeen(bool seen) async {
+    await _storage.write(
+      key: AppConstants.welcomeSeenKey,
+      value: seen ? 'true' : 'false',
+    );
+  }
 }

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/api_config.dart';
 import '../providers/api_config_provider.dart';
 import '../providers/theme_provider.dart';
+import '../services/update_checker_service.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -19,6 +21,41 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _obscureKey = true;
   bool _editing = false;
   bool _saving = false;
+  bool _checkingForUpdate = false;
+  UpdateInfo? _updateInfo;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkForUpdate();
+  }
+
+  Future<void> _checkForUpdate() async {
+    setState(() => _checkingForUpdate = true);
+    try {
+      final service = UpdateCheckerService();
+      final updateInfo = await service.checkForUpdate();
+      if (mounted) {
+        setState(() {
+          _updateInfo = updateInfo;
+          _checkingForUpdate = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _checkingForUpdate = false);
+      }
+    }
+  }
+
+  Future<void> _launchReleaseUrl() async {
+    final url = _updateInfo?.releaseUrl ??
+        'https://github.com/sieve-labs/sieve-app/releases/';
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
 
   @override
   void dispose() {
@@ -194,6 +231,59 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   style: TextStyle(color: Colors.red),
                 ),
                 onTap: _clearConfig,
+              ),
+              const SizedBox(height: 24),
+              const SectionHeader(title: 'About'),
+              const SizedBox(height: 8),
+              Card(
+                elevation: 0,
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest
+                    .withValues(alpha: 0.3),
+                child: Column(
+                  children: [
+                    if (_checkingForUpdate)
+                      const ListTile(
+                        leading: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        title: Text('Checking for updates...'),
+                      )
+                    else if (_updateInfo != null)
+                      ListTile(
+                        leading: Icon(
+                          Icons.system_update,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        title: Text(
+                          'Update Available: v${_updateInfo!.latestVersion}',
+                        ),
+                        subtitle: Text(
+                          'Current: v${_updateInfo!.currentVersion}',
+                        ),
+                        trailing: ElevatedButton(
+                          onPressed: _launchReleaseUrl,
+                          child: const Text('Download'),
+                        ),
+                      )
+                    else
+                      ListTile(
+                        leading: const Icon(Icons.check_circle_outline),
+                        title: const Text('Up to Date'),
+                        subtitle: const Text('You have the latest version'),
+                      ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.open_in_new),
+                      title: const Text('Releases'),
+                      subtitle: const Text('View on GitHub'),
+                      onTap: _launchReleaseUrl,
+                    ),
+                  ],
+                ),
               ),
             ],
           );

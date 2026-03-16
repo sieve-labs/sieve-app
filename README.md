@@ -1,13 +1,13 @@
-# lab-i
+# Sieve
 
-Automated Laboratory Image Organization
+Sort anything, automatically
 
-lab-i helps researchers automatically organize microscopy images, 
+Sieve helps researchers automatically organize microscopy images, 
 cell cultures, tissue samples, and experimental specimens through 
 AI classification.
 
 ## Downloads
-See the [Releases](https://github.com/lab-intelligence/lab-i-app/releases) 
+See the [Releases](https://github.com/sievelabs/sieve-app/releases) 
 page for the latest APK and desktop builds.
 
 ## How it works

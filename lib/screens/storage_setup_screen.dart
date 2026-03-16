@@ -74,17 +74,20 @@ class _StorageSetupScreenState extends ConsumerState<StorageSetupScreen>
     try {
       Directory? directory;
       if (Platform.isAndroid) {
-        directory = Directory('/storage/emulated/0/Download/Labi');
+        directory = Directory('/storage/emulated/0/Download/Sieve');
       } else {
         directory = await getApplicationDocumentsDirectory();
-        directory = Directory(p.join(directory.path, 'Labi'));
+        directory = Directory(p.join(directory.path, 'Sieve'));
       }
 
       if (!directory.existsSync()) {
         try {
-          directory.createSync(recursive: true);
-        } catch (e) {
-          debugPrint('Failed to create Labi dir: $e');
+          await directory.create(recursive: true);
+        } on FileSystemException catch (e) {
+          // Directory may have been created by another process, ignore if it exists now
+          if (!directory.existsSync()) {
+            debugPrint('Failed to create Sieve dir: $e');
+          }
         }
       }
       
@@ -169,7 +172,7 @@ class _StorageSetupScreenState extends ConsumerState<StorageSetupScreen>
       builder: (context) => AlertDialog(
         title: const Text('Storage Permission Required'),
         content: const Text(
-          'lab-i cannot function without storage access to save and organize your classified images. '
+          'Sieve cannot function without storage access to save and organize your classified images. '
           'Since this was denied, please enable it manually in App Settings.',
         ),
         actions: [
@@ -202,7 +205,7 @@ class _StorageSetupScreenState extends ConsumerState<StorageSetupScreen>
             const Icon(Icons.folder_special, size: 64, color: Colors.blue),
             const SizedBox(height: 24),
             const Text(
-              'lab-i needs a folder to store your sorted images. '
+              'Sieve needs a folder to store your sorted images. '
               'This folder will be used to save and organise all classified images '
               'and power your Gallery.',
               style: TextStyle(fontSize: 18),

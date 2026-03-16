@@ -43,7 +43,7 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
       ];
 
       final csvData = const ListToCsvConverter().convert(rows);
-      final defaultFileName = 'labi_results_${DateTime.now().millisecondsSinceEpoch}.csv';
+      final defaultFileName = 'sieve_results_${DateTime.now().millisecondsSinceEpoch}.csv';
 
       if (_isDesktop) {
         // Desktop: Ask where to save the file
@@ -72,7 +72,7 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
         final xFile = XFile(tempFile.path, mimeType: 'text/csv');
         await Share.shareXFiles(
           [xFile],
-          text: 'Lab-i Classification Results',
+          text: 'Sieve Classification Results',
         );
       }
     } catch (e) {

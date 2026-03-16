@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.labi" "\0"
-            VALUE "FileDescription", "labi" "\0"
+            VALUE "CompanyName", "com.sievelabs" "\0"
+            VALUE "FileDescription", "sieve" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "labi" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.labi. All rights reserved." "\0"
-            VALUE "OriginalFilename", "labi.exe" "\0"
-            VALUE "ProductName", "labi" "\0"
+            VALUE "InternalName", "sieve" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.sievelabs. All rights reserved." "\0"
+            VALUE "OriginalFilename", "sieve.exe" "\0"
+            VALUE "ProductName", "sieve" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

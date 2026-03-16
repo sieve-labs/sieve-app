@@ -1,7 +1,7 @@
-name: labi
-description: "Lab-i — Open source image classification tool for researchers"
+name: sieve
+description: "Sort anything, automatically"
 publish_to: 'none'
-version: 0.1.5
+version: 1.0.0
 
 environment:
   sdk: ^3.11.1
@@ -25,6 +25,9 @@ dependencies:
   image: ^4.8.0
   permission_handler: ^12.0.1
   intl: ^0.20.2
+  url_launcher: ^6.3.1
+  package_info_plus: ^8.0.0
+  http: ^1.2.0
 
 dev_dependencies:
   flutter_test:
@@ -33,10 +36,12 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.1
 
 flutter_launcher_icons:
-  android: "launcher_icon"
+  android: true
   ios: true
   image_path: "lib/img/logo.png"
-  min_sdk_android: 21 # android min sdk min:16, default:21
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "lib/img/logo.png"
+  min_sdk_android: 21
   web:
     generate: true
     image_path: "lib/img/logo.png"
@@ -45,7 +50,7 @@ flutter_launcher_icons:
   windows:
     generate: true
     image_path: "lib/img/logo.png"
-    icon_size: 48 # min:48, max:256, default:48
+    icon_size: 48
   macos:
     generate: true
     image_path: "lib/img/logo.png"

@@ -1,4 +1,4 @@
-package com.labi.labi
+package com.sievelabs.sieve
 
 import io.flutter.embedding.android.FlutterActivity
 

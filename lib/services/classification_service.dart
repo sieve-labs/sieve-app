@@ -161,8 +161,8 @@ class ClassificationService {
       options: Options(
         headers: {
           'Authorization': 'Bearer $apiKey',
-          'HTTP-Referer': 'https://github.com/ayo-sam/labi',
-          'X-Title': 'Labi Image Classification',
+          'HTTP-Referer': 'https://github.com/ayo-sam/sieve',
+          'X-Title': 'Sieve Image Classification',
           'Content-Type': 'application/json',
         },
       ),

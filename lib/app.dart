@@ -9,11 +9,12 @@ import 'screens/label_set_list_screen.dart';
 import 'screens/label_set_editor_screen.dart';
 import 'screens/classification_screen.dart';
 import 'screens/results_screen.dart';
+import 'screens/welcome_screen.dart';
 import 'screens/storage_setup_screen.dart';
 import 'providers/theme_provider.dart';
 
-class LabiApp extends ConsumerWidget {
-  const LabiApp({super.key});
+class SieveApp extends ConsumerWidget {
+  const SieveApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,7 +22,7 @@ class LabiApp extends ConsumerWidget {
     final themeModeAsync = ref.watch(themeModeProvider);
 
     return MaterialApp.router(
-      title: 'Lab-i',
+      title: 'Sieve',
       debugShowCheckedModeBanner: false,
       themeMode: themeModeAsync.valueOrNull ?? ThemeMode.system,
       theme: ThemeData(
@@ -57,27 +58,36 @@ class LabiApp extends ConsumerWidget {
 final _routerProvider = Provider<GoRouter>((ref) {
   final hasKeyAsync = ref.watch(hasApiKeyProvider);
   final hasGalleryPath = ref.watch(hasGalleryPathProvider);
+  final hasSeenWelcome = ref.watch(hasSeenWelcomeProvider);
 
   return GoRouter(
     initialLocation: '/',
     redirect: (context, state) {
       final hasKey = hasKeyAsync.valueOrNull ?? false;
-      
+      final hasStorage = hasGalleryPath;
+      final seenWelcome = hasSeenWelcome;
+
+      final isWelcomeRoute = state.matchedLocation == '/welcome';
       final isSetupRoute = state.matchedLocation == '/setup';
       final isStorageSetupRoute = state.matchedLocation == '/storage-setup';
 
-      // 1. Force API Key Setup first
+      // 1. Force Welcome screen first (before API key setup)
+      if (!seenWelcome && !hasKey) {
+        return isWelcomeRoute ? null : '/welcome';
+      }
+
+      // 2. Force API Key Setup second
       if (!hasKey) {
         return isSetupRoute ? null : '/setup';
       }
 
-      // 2. Force Storage Setup second
-      if (hasKey && !hasGalleryPath) {
+      // 3. Force Storage Setup third
+      if (!hasStorage) {
         return isStorageSetupRoute ? null : '/storage-setup';
       }
 
-      // 3. User is fully setup, but trying to access setup screens
-      if (hasKey && hasGalleryPath && (isSetupRoute || isStorageSetupRoute)) {
+      // 4. User is fully setup, but trying to access setup screens
+      if (hasKey && hasStorage && (isWelcomeRoute || isSetupRoute || isStorageSetupRoute)) {
         return '/';
       }
 
@@ -87,6 +97,10 @@ final _routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/',
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: '/welcome',
+        builder: (context, state) => const WelcomeScreen(),
       ),
       GoRoute(
         path: '/setup',

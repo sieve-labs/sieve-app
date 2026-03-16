@@ -1,14 +1,15 @@
-/// Constants used throughout the Lab-i app.
+/// Constants used throughout the Sieve app.
 class AppConstants {
   AppConstants._();
 
   // Secure storage keys
-  static const String apiKeyStorageKey = 'labi_api_key';
-  static const String apiProviderStorageKey = 'labi_api_provider';
-  static const String apiModelStorageKey = 'labi_api_model';
-  static const String lastGalleryPathKey = 'labi_last_gallery_path';
-  static const String themeModeStorageKey = 'labi_theme_mode';
+  static const String apiKeyStorageKey = 'sieve_api_key';
+  static const String apiProviderStorageKey = 'sieve_api_provider';
+  static const String apiModelStorageKey = 'sieve_api_model';
+  static const String lastGalleryPathKey = 'sieve_last_gallery_path';
+  static const String themeModeStorageKey = 'sieve_theme_mode';
   static const String ollamaModelStorageKey = 'ollama_model';
+  static const String welcomeSeenKey = 'sieve_welcome_seen';
 
   // Hive box names
   static const String labelSetsBox = 'label_sets';

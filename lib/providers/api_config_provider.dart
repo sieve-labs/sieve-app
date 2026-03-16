@@ -100,3 +100,49 @@ final hasGalleryPathProvider = Provider<bool>((ref) {
     orElse: () => false,
   );
 });
+
+/// Manages the welcome screen seen state.
+class WelcomeSeenNotifier extends AsyncNotifier<bool> {
+  @override
+  FutureOr<bool> build() async {
+    final service = ref.read(secureStorageServiceProvider);
+    return service.hasSeenWelcome();
+  }
+
+  Future<void> markAsSeen() async {
+    state = const AsyncValue.loading();
+    try {
+      final service = ref.read(secureStorageServiceProvider);
+      await service.setWelcomeSeen(true);
+      state = const AsyncValue.data(true);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> reset() async {
+    state = const AsyncValue.loading();
+    try {
+      final service = ref.read(secureStorageServiceProvider);
+      await service.setWelcomeSeen(false);
+      state = const AsyncValue.data(false);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+}
+
+/// Provider for the welcome seen state.
+final welcomeSeenProvider =
+    AsyncNotifierProvider<WelcomeSeenNotifier, bool>(() {
+  return WelcomeSeenNotifier();
+});
+
+/// Convenience provider that checks if user has seen welcome screen.
+final hasSeenWelcomeProvider = Provider<bool>((ref) {
+  final seenAsync = ref.watch(welcomeSeenProvider);
+  return seenAsync.maybeWhen(
+    data: (seen) => seen,
+    orElse: () => false,
+  );
+});

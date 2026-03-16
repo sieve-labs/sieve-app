@@ -8,7 +8,7 @@ void main() async {
   await Hive.initFlutter();
   runApp(
     const ProviderScope(
-      child: LabiApp(),
+      child: SieveApp(),
     ),
   );
 }
