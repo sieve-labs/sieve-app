@@ -338,12 +338,36 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
     }
 
     // Determine what to show
+    Widget content;
     if (_selectedAlbumLabel == null) {
-      return _buildAlbumView();
+      content = _buildAlbumView();
     } else {
       final section = _sections.firstWhere((s) => s.label == _selectedAlbumLabel);
-      return _buildGridView(section);
+      content = _buildGridView(section);
     }
+
+    // Wrap with PopScope to handle back button
+    return PopScope(
+      canPop: _selectedAlbumLabel == null && !_isSelectionMode && !_isAlbumSelectionMode,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+        // Handle back button manually
+        if (_isSelectionMode) {
+          setState(() {
+            _isSelectionMode = false;
+            _selectedFiles.clear();
+          });
+        } else if (_isAlbumSelectionMode) {
+          setState(() {
+            _isAlbumSelectionMode = false;
+            _selectedAlbumLabels.clear();
+          });
+        } else if (_selectedAlbumLabel != null) {
+          setState(() => _selectedAlbumLabel = null);
+        }
+      },
+      child: content,
+    );
   }
 
   Widget _buildAlbumView() {
@@ -465,7 +489,12 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
                                   horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: Colors.black54,
-                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: Theme.of(context).brightness == Brightness.dark 
+                                      ? const Color(0xFF3a3a3a)
+                                      : const Color(0xFFd0d0d0),
+                                  width: 1,
+                                ),
                               ),
                               child: Text(
                                 '${section.files.length}',

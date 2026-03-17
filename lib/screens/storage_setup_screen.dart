@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
 import '../providers/api_config_provider.dart';
+import '../widgets/graph_paper_background.dart';
 
 class StorageSetupScreen extends ConsumerStatefulWidget {
   const StorageSetupScreen({super.key});
@@ -194,38 +195,41 @@ class _StorageSetupScreenState extends ConsumerState<StorageSetupScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Storage Setup')),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.folder_special, size: 64, color: Colors.blue),
-            const SizedBox(height: 24),
-            const Text(
-              'Sieve needs a folder to store your sorted images. '
-              'This folder will be used to save and organise all classified images '
-              'and power your Gallery.',
-              style: TextStyle(fontSize: 18),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 48),
-            _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+    return GraphPaperBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('Storage Setup'),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 24),
+              const Text(
+                'Sieve needs a folder to store your sorted images. '
+                'This folder will be used to save and organise all classified images '
+                'and power your Gallery.',
+                style: TextStyle(fontSize: 18),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 48),
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      onPressed: _handleSetup,
+                      icon: Icon(_isDesktop ? Icons.folder_open : Icons.save_alt),
+                      label: Text(
+                        _isDesktop ? 'Choose Folder' : 'Grant Storage Access',
+                        style: const TextStyle(fontSize: 16),
+                      ),
                     ),
-                    onPressed: _handleSetup,
-                    icon: Icon(_isDesktop ? Icons.folder_open : Icons.save_alt),
-                    label: Text(
-                      _isDesktop ? 'Choose Folder' : 'Grant Storage Access',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ),
-          ],
+            ],
+          ),
         ),
       ),
     );

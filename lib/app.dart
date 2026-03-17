@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'providers/api_config_provider.dart';
+import 'providers/theme_provider.dart';
+import 'theme/app_theme.dart';
+import 'theme/page_transitions.dart';
 import 'screens/api_key_setup_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/settings_screen.dart';
@@ -11,7 +14,6 @@ import 'screens/classification_screen.dart';
 import 'screens/results_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/storage_setup_screen.dart';
-import 'providers/theme_provider.dart';
 
 class SieveApp extends ConsumerWidget {
   const SieveApp({super.key});
@@ -25,31 +27,8 @@ class SieveApp extends ConsumerWidget {
       title: 'Sieve',
       debugShowCheckedModeBanner: false,
       themeMode: themeModeAsync.valueOrNull ?? ThemeMode.system,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
-          brightness: Brightness.light,
-        ),
-        appBarTheme: const AppBarTheme(
-          centerTitle: true,
-          elevation: 0,
-        ),
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
-          brightness: Brightness.dark,
-          surface: const Color(0xFF1A1C1E),
-        ),
-        appBarTheme: const AppBarTheme(
-          centerTitle: true,
-          elevation: 0,
-          backgroundColor: Color(0xFF1A1C1E),
-        ),
-        scaffoldBackgroundColor: const Color(0xFF1A1C1E),
-      ),
+      theme: createSieveLightTheme(),
+      darkTheme: createSieveDarkTheme(),
       routerConfig: router,
     );
   }
@@ -96,45 +75,75 @@ final _routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/',
-        builder: (context, state) => const HomeScreen(),
+        pageBuilder: (context, state) => SievePageTransitions.fade(
+          child: const HomeScreen(),
+          state: state,
+        ),
       ),
       GoRoute(
         path: '/welcome',
-        builder: (context, state) => const WelcomeScreen(),
+        pageBuilder: (context, state) => SievePageTransitions.slideLeft(
+          child: const WelcomeScreen(),
+          state: state,
+        ),
       ),
       GoRoute(
         path: '/setup',
-        builder: (context, state) => const ApiKeySetupScreen(),
+        pageBuilder: (context, state) => SievePageTransitions.slideLeft(
+          child: const ApiKeySetupScreen(),
+          state: state,
+        ),
       ),
       GoRoute(
         path: '/storage-setup',
-        builder: (context, state) => const StorageSetupScreen(),
+        pageBuilder: (context, state) => SievePageTransitions.slideLeft(
+          child: const StorageSetupScreen(),
+          state: state,
+        ),
       ),
       GoRoute(
         path: '/settings',
-        builder: (context, state) => const SettingsScreen(),
+        pageBuilder: (context, state) => SievePageTransitions.slideLeft(
+          child: const SettingsScreen(),
+          state: state,
+        ),
       ),
       GoRoute(
         path: '/label-sets',
-        builder: (context, state) => const LabelSetListScreen(),
+        pageBuilder: (context, state) => SievePageTransitions.slideLeft(
+          child: const LabelSetListScreen(),
+          state: state,
+        ),
       ),
       GoRoute(
         path: '/label-sets/new',
-        builder: (context, state) => const LabelSetEditorScreen(),
+        pageBuilder: (context, state) => SievePageTransitions.slideLeft(
+          child: const LabelSetEditorScreen(),
+          state: state,
+        ),
       ),
       GoRoute(
         path: '/label-sets/:id',
-        builder: (context, state) => LabelSetEditorScreen(
-          labelSetId: state.pathParameters['id'],
+        pageBuilder: (context, state) => SievePageTransitions.slideLeft(
+          child: LabelSetEditorScreen(
+            labelSetId: state.pathParameters['id'],
+          ),
+          state: state,
         ),
       ),
       GoRoute(
         path: '/classify',
-        builder: (context, state) => const ClassificationScreen(),
+        pageBuilder: (context, state) => SievePageTransitions.slideLeft(
+          child: const ClassificationScreen(),
+          state: state,
+        ),
       ),
       GoRoute(
         path: '/results',
-        builder: (context, state) => const ResultsScreen(),
+        pageBuilder: (context, state) => SievePageTransitions.slideLeft(
+          child: const ResultsScreen(),
+          state: state,
+        ),
       ),
     ],
   );

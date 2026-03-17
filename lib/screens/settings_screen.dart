@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../models/api_config.dart';
 import '../providers/api_config_provider.dart';
 import '../providers/theme_provider.dart';
+import '../services/secure_storage_service.dart';
+import '../models/api_config.dart';
+import '../theme/app_theme.dart';
+import '../widgets/graph_paper_background.dart';
 import '../services/update_checker_service.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -52,8 +55,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final url = _updateInfo?.releaseUrl ??
         'https://github.com/sieve-labs/sieve-app/releases/';
     final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    try {
+      // Try to launch directly - canLaunchUrl often fails on Android
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open link')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error opening link: $e')),
+        );
+      }
     }
   }
 
@@ -128,166 +146,177 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final configAsync = ref.watch(apiConfigProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
-      body: configAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
-        data: (config) {
-          if (config == null) {
-            return const Center(child: Text('No API key configured.'));
-          }
+    return GraphPaperBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(title: const Text('Settings')),
+        body: configAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('Error: $e')),
+          data: (config) {
+            if (config == null) {
+              return const Center(child: Text('No API key configured.'));
+            }
 
-          if (_editing) {
-            return _buildEditForm(config);
-          }
+            if (_editing) {
+              return PopScope(
+                canPop: false,
+                onPopInvoked: (didPop) {
+                  if (!didPop) {
+                    setState(() => _editing = false);
+                  }
+                },
+                child: _buildEditForm(config),
+              );
+            }
 
-          final themeModeAsync = ref.watch(themeModeProvider);
-          final themeMode = themeModeAsync.valueOrNull ?? ThemeMode.system;
+            final themeModeAsync = ref.watch(themeModeProvider);
+            final themeMode = themeModeAsync.valueOrNull ?? ThemeMode.system;
 
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              const SectionHeader(title: 'Appearance'),
-              const SizedBox(height: 8),
-              Card(
-                elevation: 0,
-                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    children: [
-                      const ListTile(
-                        leading: Icon(Icons.palette_outlined),
-                        title: Text('Theme Mode'),
-                        subtitle: Text('Switch between light and dark themes'),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: SegmentedButton<ThemeMode>(
-                            segments: const [
-                              ButtonSegment(
-                                value: ThemeMode.system,
-                                label: Text('Auto'),
-                                icon: Icon(Icons.brightness_auto_outlined),
-                              ),
-                              ButtonSegment(
-                                value: ThemeMode.light,
-                                label: Text('Light'),
-                                icon: Icon(Icons.light_mode_outlined),
-                              ),
-                              ButtonSegment(
-                                value: ThemeMode.dark,
-                                label: Text('Dark'),
-                                icon: Icon(Icons.dark_mode_outlined),
-                              ),
-                            ],
-                            selected: {themeMode},
-                            onSelectionChanged: (newSelection) {
-                              ref
-                                  .read(themeModeProvider.notifier)
-                                  .setThemeMode(newSelection.first);
-                            },
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                const SectionHeader(title: 'Appearance'),
+                const SizedBox(height: 8),
+                Card(
+                  elevation: 0,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: [
+                        const ListTile(
+                          leading: Icon(Icons.palette_outlined),
+                          title: Text('Theme Mode'),
+                          subtitle: Text('Switch between light and dark themes'),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: SegmentedButton<ThemeMode>(
+                              segments: const [
+                                ButtonSegment(
+                                  value: ThemeMode.system,
+                                  label: Text('Auto'),
+                                  icon: Icon(Icons.brightness_auto_outlined),
+                                ),
+                                ButtonSegment(
+                                  value: ThemeMode.light,
+                                  label: Text('Light'),
+                                  icon: Icon(Icons.light_mode_outlined),
+                                ),
+                                ButtonSegment(
+                                  value: ThemeMode.dark,
+                                  label: Text('Dark'),
+                                  icon: Icon(Icons.dark_mode_outlined),
+                                ),
+                              ],
+                              selected: {themeMode},
+                              onSelectionChanged: (newSelection) {
+                                ref
+                                    .read(themeModeProvider.notifier)
+                                    .setThemeMode(newSelection.first);
+                              },
+                            ),
                           ),
                         ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const SectionHeader(title: 'API Configuration'),
+                const SizedBox(height: 8),
+                ListTile(
+                  title: const Text('Provider'),
+                  subtitle: Text(config.provider.displayName),
+                ),
+                if (config.provider == ApiProvider.openrouter &&
+                    config.model != null &&
+                    config.model!.isNotEmpty)
+                  ListTile(
+                    title: const Text('Model'),
+                    subtitle: Text(config.model!),
+                  ),
+                if (config.provider != ApiProvider.ollama)
+                  ListTile(
+                    title: const Text('API Key'),
+                    subtitle: Text(
+                      '••••••••${config.apiKey.length > 4 ? config.apiKey.substring(config.apiKey.length - 4) : ''}',
+                    ),
+                  ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.edit_outlined),
+                  title: const Text('Change API Key'),
+                  onTap: () => _startEditing(config),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.delete_outline, color: Colors.red),
+                  title: const Text(
+                    'Clear API Key',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                  onTap: _clearConfig,
+                ),
+                const SizedBox(height: 24),
+                const SectionHeader(title: 'About'),
+                const SizedBox(height: 8),
+                Card(
+                  elevation: 0,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surfaceContainerHighest
+                      .withValues(alpha: 0.3),
+                  child: Column(
+                    children: [
+                      if (_checkingForUpdate)
+                        const ListTile(
+                          leading: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          title: Text('Checking for updates...'),
+                        )
+                      else if (_updateInfo != null)
+                        ListTile(
+                          leading: Icon(
+                            Icons.system_update,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          title: Text(
+                            'Update Available: v${_updateInfo!.latestVersion}',
+                          ),
+                          subtitle: Text(
+                            'Current: v${_updateInfo!.currentVersion}',
+                          ),
+                          trailing: ElevatedButton(
+                            onPressed: _launchReleaseUrl,
+                            child: const Text('Download'),
+                          ),
+                        )
+                      else
+                        const ListTile(
+                          leading: Icon(Icons.check_circle_outline),
+                          title: Text('Up to Date'),
+                          subtitle: Text('You have the latest version'),
+                        ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.open_in_new),
+                        title: const Text('Releases'),
+                        subtitle: const Text('View on GitHub'),
+                        onTap: _launchReleaseUrl,
                       ),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              const SectionHeader(title: 'API Configuration'),
-              const SizedBox(height: 8),
-              ListTile(
-                title: const Text('Provider'),
-                subtitle: Text(config.provider.displayName),
-              ),
-              if (config.provider == ApiProvider.openrouter &&
-                  config.model != null &&
-                  config.model!.isNotEmpty)
-                ListTile(
-                  title: const Text('Model'),
-                  subtitle: Text(config.model!),
-                ),
-              if (config.provider != ApiProvider.ollama)
-                ListTile(
-                  title: const Text('API Key'),
-                  subtitle: Text(
-                    '••••••••${config.apiKey.length > 4 ? config.apiKey.substring(config.apiKey.length - 4) : ''}',
-                  ),
-                ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.edit_outlined),
-                title: const Text('Change API Key'),
-                onTap: () => _startEditing(config),
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete_outline, color: Colors.red),
-                title: const Text(
-                  'Clear API Key',
-                  style: TextStyle(color: Colors.red),
-                ),
-                onTap: _clearConfig,
-              ),
-              const SizedBox(height: 24),
-              const SectionHeader(title: 'About'),
-              const SizedBox(height: 8),
-              Card(
-                elevation: 0,
-                color: Theme.of(context)
-                    .colorScheme
-                    .surfaceContainerHighest
-                    .withValues(alpha: 0.3),
-                child: Column(
-                  children: [
-                    if (_checkingForUpdate)
-                      const ListTile(
-                        leading: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                        title: Text('Checking for updates...'),
-                      )
-                    else if (_updateInfo != null)
-                      ListTile(
-                        leading: Icon(
-                          Icons.system_update,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        title: Text(
-                          'Update Available: v${_updateInfo!.latestVersion}',
-                        ),
-                        subtitle: Text(
-                          'Current: v${_updateInfo!.currentVersion}',
-                        ),
-                        trailing: ElevatedButton(
-                          onPressed: _launchReleaseUrl,
-                          child: const Text('Download'),
-                        ),
-                      )
-                    else
-                      ListTile(
-                        leading: const Icon(Icons.check_circle_outline),
-                        title: const Text('Up to Date'),
-                        subtitle: const Text('You have the latest version'),
-                      ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.open_in_new),
-                      title: const Text('Releases'),
-                      subtitle: const Text('View on GitHub'),
-                      onTap: _launchReleaseUrl,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }

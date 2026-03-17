@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../widgets/graph_paper_background.dart';
 import 'gallery_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -16,42 +17,53 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sieve'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => context.push('/settings'),
+    return PopScope(
+      canPop: _currentIndex == 0,
+      onPopInvoked: (didPop) {
+        if (!didPop && _currentIndex == 1) {
+          setState(() => _currentIndex = 0);
+        }
+      },
+      child: GraphPaperBackground(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            title: const Text('Sieve'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: () => context.push('/settings'),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: [
-          _buildClassifyView(context),
-          const GalleryScreen(),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.image_search_outlined),
-            selectedIcon: Icon(Icons.image_search),
-            label: 'Classify',
+          body: IndexedStack(
+            index: _currentIndex,
+            children: [
+              _buildClassifyView(context),
+              const GalleryScreen(),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.photo_library_outlined),
-            selectedIcon: Icon(Icons.photo_library),
-            label: 'Gallery',
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: _currentIndex,
+            onDestinationSelected: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.image_search_outlined),
+                selectedIcon: Icon(Icons.image_search),
+                label: 'Classify',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.photo_library_outlined),
+                selectedIcon: Icon(Icons.photo_library),
+                label: 'Gallery',
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -132,10 +144,25 @@ class _ExternalFeatureCard extends StatelessWidget {
     required this.url,
   });
 
-  Future<void> _launchUrl() async {
+  Future<void> _launchUrl(BuildContext context) async {
     final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    try {
+      // Try to launch directly - canLaunchUrl often fails on Android
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open link')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error opening link: $e')),
+        );
+      }
     }
   }
 
@@ -147,7 +174,7 @@ class _ExternalFeatureCard extends StatelessWidget {
         title: Text(title),
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.open_in_new),
-        onTap: _launchUrl,
+        onTap: () => _launchUrl(context),
       ),
     );
   }

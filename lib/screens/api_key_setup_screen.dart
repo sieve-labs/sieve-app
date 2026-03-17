@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../models/api_config.dart';
 import '../providers/api_config_provider.dart';
+import '../theme/app_theme.dart';
+import '../widgets/graph_paper_background.dart';
 
 class ApiKeySetupScreen extends ConsumerStatefulWidget {
   const ApiKeySetupScreen({super.key});
@@ -47,41 +49,43 @@ class _ApiKeySetupScreenState extends ConsumerState<ApiKeySetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('API Key Setup')),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Configure your AI provider to get started with image classification.',
-              ),
-              const SizedBox(height: 24),
-              DropdownButtonFormField<ApiProvider>(
-                initialValue: _selectedProvider,
-                decoration: const InputDecoration(
-                  labelText: 'Provider',
-                  border: OutlineInputBorder(),
+    return GraphPaperBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(title: const Text('API Key Setup')),
+        body: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Configure your AI provider to get started with image classification.',
                 ),
-                items: ApiProvider.values.map((provider) {
-                  return DropdownMenuItem(
-                    value: provider,
-                    child: Text(provider.displayName),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _selectedProvider = value);
-                  }
-                },
-              ),
-              if (_selectedProvider == ApiProvider.openrouter ||
-                  _selectedProvider == ApiProvider.ollama) ...[
-                const SizedBox(height: 16),
-                TextFormField(
+                const SizedBox(height: 24),
+                DropdownButtonFormField<ApiProvider>(
+                  initialValue: _selectedProvider,
+                  decoration: const InputDecoration(
+                    labelText: 'Provider',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: ApiProvider.values.map((provider) {
+                    return DropdownMenuItem(
+                      value: provider,
+                      child: Text(provider.displayName),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _selectedProvider = value);
+                    }
+                  },
+                ),
+                if (_selectedProvider == ApiProvider.openrouter ||
+                    _selectedProvider == ApiProvider.ollama) ...[
+                  const SizedBox(height: 16),
+                  TextFormField(
                   controller: _customModelController,
                   decoration: InputDecoration(
                     labelText: _selectedProvider == ApiProvider.ollama
@@ -118,8 +122,8 @@ class _ApiKeySetupScreenState extends ConsumerState<ApiKeySetupScreen> {
                     return null;
                   },
                 ),
-              if (_selectedProvider == ApiProvider.ollama)
-                const Card(
+                if (_selectedProvider == ApiProvider.ollama)
+                  const Card(
                   color: Colors.blueGrey,
                   child: Padding(
                     padding: EdgeInsets.all(12.0),
@@ -129,18 +133,19 @@ class _ApiKeySetupScreenState extends ConsumerState<ApiKeySetupScreen> {
                     ),
                   ),
                 ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _saving ? null : _saveConfig,
-                child: _saving
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Save & Continue'),
-              ),
-            ],
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _saving ? null : _saveConfig,
+                  child: _saving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Continue'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
